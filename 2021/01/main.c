@@ -9,18 +9,6 @@
 #define SV_IMPLEMENTATION
 #include "../sv.h"
 
-String_View sv_slurp_file(char* filename){
-    int fd = open (filename, O_RDONLY);
-    struct stat s;
-    int status = fstat (fd, & s);
-    (void) status;
-    size_t size = s.st_size;
-    return (String_View) {
-        .data = mmap (0, size, PROT_READ, MAP_PRIVATE, fd, 0),
-        .count = size
-    };
-}
-
 size_t part_one(){
     String_View input = sv_slurp_file("input.txt");
     size_t count = 0;

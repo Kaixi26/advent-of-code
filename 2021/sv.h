@@ -255,4 +255,17 @@ SVDEF String_View sv_take_left_while(String_View sv, bool (*predicate)(char x))
     return sv_from_parts(sv.data, i);
 }
 
+String_View sv_slurp_file(char* filename){
+    int fd = open (filename, O_RDONLY);
+    struct stat s;
+    int status = fstat (fd, & s);
+    (void) status;
+    size_t size = s.st_size;
+    return (String_View) {
+        .data = mmap (0, size, PROT_READ, MAP_PRIVATE, fd, 0),
+        .count = size
+    };
+}
+
+
 #endif // SV_IMPLEMENTATION
