@@ -267,5 +267,8 @@ String_View sv_slurp_file(char* filename){
     };
 }
 
+void sv_debug(String_View sv){
+    printf(SV_Fmt, SV_Arg(sv));
+}
 
 #endif // SV_IMPLEMENTATION
