@@ -1,0 +1,90 @@
+:- use_module(library(lists)).
+
+count_eq(_, [], 0).
+count_eq(X, [H|T], R) :-
+    count_eq(X, T, R0),
+    (X = H ->
+        R is R0 + 1;
+        R is R0).
+
+parse_rule(Str, (K:V)) :-
+    string_chars(Str, [L0,L1,' ','-','>',' ',R]),
+    string_chars(KStr, [L0,L1]),
+    string_chars(VStr, [R]),
+    atom_string(K, KStr),
+    atom_string(V, VStr).
+
+template_from_chars([H], Template) :-
+    Template = template{}.put(H, 1).
+template_from_chars([H0,H1|ST], Template) :-
+    template_from_chars([H1|ST], T0),
+    string_chars(KStr, [H0,H1]),
+    atom_string(K, KStr),
+    V0 is T0.get(K, 0) + 1,
+    V1 is T0.get(H0, 0) + 1,
+    Template = T0.put(K, V0).put(H0, V1).
+
+parse_template(Stream, Template) :-
+    read_line_to_string(Stream, StrTemplate),
+    string_chars(StrTemplate, ChrTemplate),
+    template_from_chars(ChrTemplate, Template).
+
+parse_rules(Stream, Rules) :-
+    read_string(Stream, _, Str),
+    split_string(Str, "\n", "", Lines),
+    findall(Rule, (member(Line, Lines), parse_rule(Line, Rule)), RulesList),
+    dict_create(Rules, rules, RulesList).
+
+parse_input(Stream, Template, Rules) :-
+    parse_template(Stream, Template),
+    read_line_to_string(Stream, _),
+    parse_rules(Stream, Rules).
+
+template_to_dict([], template{}).
+template_to_dict([K-V|T], Template) :-
+    template_to_dict(T, Template0),
+    CurrV = Template0.get(K, 0),
+    NewV is CurrV + V,
+    Template = Template0.put(K, NewV).
+
+apply(Template, Rules, Out) :-
+    dict_pairs(Template, template, Pairs),
+    findall(K-V, (member(K-V, Pairs), atom_chars(K, [_|[]])), CurrCounts),
+    findall([K1-V, K2-V, M-V],
+        (member(K0-V, Pairs),
+            M = Rules.get(K0),
+            atom_chars(K0, [L,R]),
+            atom_chars(K1, [L,M]),
+            atom_chars(K2, [M,R])
+        ),
+        List0),
+    flatten([List0|CurrCounts], List1),
+    template_to_dict(List1, Out).
+
+applyN(Template, _, Template, 0).
+applyN(Template, Rules, Out, N) :-
+    N > 0, N0 is N-1,
+    applyN(Template, Rules, Out0, N0),
+    apply(Out0, Rules, Out).
+
+used_atoms(Rules, Atoms) :-
+    dict_pairs(Rules, _, Ps),
+    findall(X, member(_-X, Ps), L),
+    sort(L, Atoms).
+
+solve(Template, Rules, N, Result) :-
+    applyN(Template, Rules, Out, N),
+    dict_pairs(Out, _, Pairs),
+    findall(V, (member(K-V, Pairs), atom_chars(K, [_|[]])), Counts),
+    max_list(Counts, Max),
+    min_list(Counts, Min),
+    Result is Max - Min.
+
+main :- 
+    open('input.txt', read, Stream),
+    parse_input(Stream, Template, Rules),
+    close(Stream),
+    solve(Template, Rules, 10, Result1),
+    format("~w~w~n", ["Part 1: ", Result1]),
+    solve(Template, Rules, 40, Result2),
+    format("~w~w~n", ["Part 2: ", Result2]).
