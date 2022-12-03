@@ -20,17 +20,16 @@ object Main {
       ret
     }
 
-    var priorities = 0
-    data.linesIterator.foreach(line => {
+    val priorities = data.linesIterator.map(line => {
       val commonItems = line.chars().toArray.splitAt(line.length / 2) match {
         case (l, r) => l.toSet.intersect(r.toSet)
       }
-      commonItems.foreach(item => priorities += priority(item.toChar))
-    })
+      commonItems.sum
+    }).sum
 
     println(s"Part 1 solution: $priorities")
 
-    var priorities2 = data.linesIterator
+    val priorities2 = data.linesIterator
       .map(line => line.chars().toArray.toSet).iterator
       .grouped(3)
       .map(groups => groups.reduce((x, y) => x.intersect(y)))
