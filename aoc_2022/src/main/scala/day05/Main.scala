@@ -47,7 +47,6 @@ object Main extends App {
       (applyMoves(move), applyMoves(moveP2))
   }
 
-
   println(s"Part 1 solution: $part1")
   println(s"Part 2 solution: $part2")
 
