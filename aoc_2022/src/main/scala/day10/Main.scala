@@ -48,4 +48,6 @@ object Main extends App {
     }
     println("")
   }
+
+  println(Option(null))
 }
